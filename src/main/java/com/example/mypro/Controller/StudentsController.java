@@ -1,9 +1,9 @@
 package com.example.mypro.Controller;
 
-import org.springframework.web.bind.annotation.RestController;
-
 import com.example.mypro.Entity.StudentEntity;
 import com.example.mypro.Services.StudentSevices;
+
+import org.springframework.ui.Model;
 
 import java.util.Optional;
 
@@ -17,45 +17,61 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-
 @Controller
-@RestController
 public class StudentsController {
 
     @Autowired
     StudentSevices studentSevices;
 
-    @PostMapping("/add")
-    public ResponseEntity AddData(@RequestBody StudentEntity studentEntity) {
-        try {
-            studentSevices.addStudent(studentEntity);
-            return ResponseEntity.ok("Student Added");
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatusCode.valueOf(500));
-        }
-        
+    @GetMapping("/add")
+    public String getForm(Model model) {
+        StudentEntity se = new StudentEntity();
+        model.addAttribute("student", se);
+        return "studentadd";
     }
+
+    @PostMapping("/adddata") // create
+    public String addData(@ModelAttribute("student") StudentEntity studentEntity) {
+        studentSevices.addStudent(studentEntity);
+        return "redirect:/getall";
+    }
+
+    // @GetMapping("/getall")
+    // public ResponseEntity getStudents() {
+    //     try {
+    //         return new ResponseEntity<>(studentSevices.getAllStudents(), HttpStatusCode.valueOf(200));
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>(HttpStatusCode.valueOf(500));
+    //     }
+
+    // }
     @GetMapping("/getall")
-    public ResponseEntity getStudents() {
-        try {
-            return new ResponseEntity<>(studentSevices.getAllStudents(),HttpStatusCode.valueOf(200));
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatusCode.valueOf(500)); 
-        }
-        
+    public String getall(Model model) {
+     model.addAttribute("listuser", studentSevices.getAllStudents());
+     return "studentmanage";
     }
-     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
-        try {
-            studentSevices.deleteStudent(id);
-            return ResponseEntity.ok("Student deleted with id: " + id);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Delete Failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    
+
+    // @DeleteMapping("/delete/{id}")
+    // public ResponseEntity<?> deleteStudent(@PathVariable Long id) {
+    //     try {
+    //         studentSevices.deleteStudent(id);
+    //         return ResponseEntity.ok("Student deleted with id: " + id);
+    //     } catch (Exception e) {
+    //         return new ResponseEntity<>("Delete Failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+    @GetMapping("/delete/{id}")
+    public String deletedata(@PathVariable(value = "id") long id) {
+        studentSevices.deleteStudent(id);
+         return "redirect:/getall";
     }
+    
+
 
     @PutMapping("/update/{id}")
     public ResponseEntity<?> updateStudent(@PathVariable Long id, @RequestBody StudentEntity updatedStudent) {
@@ -76,6 +92,5 @@ public class StudentsController {
             return new ResponseEntity<>("Update Failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-    
+
 }
